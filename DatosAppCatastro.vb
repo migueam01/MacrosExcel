@@ -1,6 +1,8 @@
-Sub deExcelAPocket()
-	'Genera archivos de texto para cargar en la aplicación Catastro de pozos
-	'a partir de las fichas de pozos catastrados
+Sub pasarBaseApp()
+    'Pasa los datos de Excel (datos en hoja formato de catastro) a los archivos de texto
+    'usados para la aplicación catastro de pozos.
+    'Pasa los datos directamente desde la base en Excel.
+    
     Dim matrizDatos(0 To 50, 0 To 50) As Variant
     Dim OpFuncionaContiguo, OpEstadoContiguo, funcionaContiguo, estadoContiguo As String
     Dim existeSum, existeRejilla, rejillaHf, rejillaHs, rejillaMet As String
@@ -13,26 +15,32 @@ Sub deExcelAPocket()
     Dim limpio, tierra, aguaEst, mantenimiento, tapaHf, tapaHs, tapaNo, tapaPiedra, tapa As String
     Dim opCadena, cadena, opRota, rota, nombrePozoCentral As String
     Dim flujo As String
+    Dim rango As String
+    Dim diametro, alturaBase, alturaCorona As Double
+    Dim filaInicio As Integer
     
     Dim rutaPozos, rutaPozosTx As String
     Dim objetoFSO As Object
     Dim archivoTexto As Object
     Set objetoFSO = CreateObject("Scripting.FileSystemObject")
     
-    rutaPozos = Range("B1").Value + "\"
-    rutaPozosTx = Range("C1").Value + "\"
+    filaInicio = ActiveCell.Row
+    filaInicio = InputBox("Fila inicio", "INICIO", filaInicio)
+'    rutaPozos = Range("B1").Value + "\"
+'    rutaPozosTx = Range("C1").Value + "\"
+    rutaPozosTx = "C:\PozosNuevos\"
 '    Range("B2").Select
     archivo = ActiveCell.Value
-    Workbooks.OpenText Filename:=rutaPozos + archivo
-    numCaracter = InStrRev(archivo, "\")
-    archivoExcelPozo = Mid(archivo, numCaracter + 1)
+'    Workbooks.OpenText Filename:=rutaPozos + archivo
+'    numCaracter = InStrRev(archivo, "\")
+'    archivoExcelPozo = Mid(archivo, numCaracter + 1)
     archivoMacro = "MacroCatastro.xlsm"
     
     Do While archivo <> ""
     
-        Windows(archivoExcelPozo).Activate
-        
-        OpEstadoContiguo = Range("L34").Value
+'        Windows(archivoExcelPozo).Activate
+        rango = "CB" & filaInicio
+        OpEstadoContiguo = Range(rango).Value
         Select Case OpEstadoContiguo
             Case "B"
                 estadoContiguo = "Bueno"
@@ -42,29 +50,37 @@ Sub deExcelAPocket()
                 estadoContiguo = "Malo"
         End Select
         
-        OpFuncionaContiguo = Range("L35").Value
+        rango = "CC" & filaInicio
+        OpFuncionaContiguo = Range(rango).Value
         Select Case OpFuncionaContiguo
-            Case "SI"
+            Case "Si"
                 funcionaContiguo = "Si"
-            Case "NO"
+            Case "No"
                 funcionaContiguo = "No"
         End Select
         
-        verificarNumero = Range("L31").Value
+        rango = "BY" & filaInicio
+        verificarNumero = Range(rango).Value
         If verificarNumero = "" Then
             matrizDatos(1, 4) = 0
         Else
-            matrizDatos(1, 4) = verificarNumero
+            alturaBase = Range(rango).Value
+            matrizDatos(1, 4) = alturaBase
         End If
         
-        verificarNumero = Range("L32").Value
+        'Calcula la altura de la corona
+        rango = "BZ" & filaInicio
+        verificarNumero = Range(rango)  'Obtiene el diámetro
         If verificarNumero = "" Then
             matrizDatos(1, 5) = 0
         Else
-            matrizDatos(1, 5) = verificarNumero
+            diametro = Range(rango) / 1000
+            alturaCorona = alturaBase - diametro
+            matrizDatos(1, 5) = alturaCorona
         End If
         
-        flujo = Range("K42").Value
+        rango = "CD" & filaInicio
+        flujo = Range(rango).Value
         Select Case flujo
             Case "E"
                 matrizDatos(1, 9) = "Entra"
@@ -74,10 +90,13 @@ Sub deExcelAPocket()
                 matrizDatos(1, 9) = "Inicio"
         End Select
         
-        matrizDatos(1, 1) = 1: matrizDatos(1, 2) = Range("K38").Value: matrizDatos(1, 3) = "Norte":
-        matrizDatos(1, 6) = Range("L33").Value: matrizDatos(1, 7) = estadoContiguo: matrizDatos(1, 8) = funcionaContiguo
+        rango = "CE" & filaInicio  'Nombre del pozo norte
+        matrizDatos(1, 1) = 1: matrizDatos(1, 2) = Range(rango).Value: matrizDatos(1, 3) = "Norte":
+        rango = "CA" & filaInicio  'Tipo de tubería
+        matrizDatos(1, 6) = Range(rango).Value: matrizDatos(1, 7) = estadoContiguo: matrizDatos(1, 8) = funcionaContiguo
         
-        OpEstadoContiguo = Range("M53").Value
+        rango = "BL" & filaInicio
+        OpEstadoContiguo = Range(rango).Value
         Select Case OpEstadoContiguo
             Case "B"
                 estadoContiguo = "Bueno"
@@ -87,29 +106,37 @@ Sub deExcelAPocket()
                 estadoContiguo = "Malo"
         End Select
         
-        OpFuncionaContiguo = Range("M54").Value
+        rango = "BM" & filaInicio
+        OpFuncionaContiguo = Range(rango).Value
         Select Case OpFuncionaContiguo
-            Case "SI"
+            Case "Si"
                 funcionaContiguo = "Si"
-            Case "NO"
+            Case "No"
                 funcionaContiguo = "No"
         End Select
         
-        verificarNumero = Range("M50").Value
+        rango = "BI" & filaInicio
+        verificarNumero = Range(rango).Value
         If verificarNumero = "" Then
             matrizDatos(2, 4) = 0
         Else
-            matrizDatos(2, 4) = verificarNumero
+            alturaBase = Range(rango).Value
+            matrizDatos(2, 4) = alturaBase
         End If
         
-        verificarNumero = Range("M51").Value
+        'Calcula la altura de la corona del pozo sur
+        rango = "BJ" & filaInicio
+        verificarNumero = Range(rango).Value  'diámetro de la tubería
         If verificarNumero = "" Then
             matrizDatos(2, 5) = 0
         Else
-            matrizDatos(2, 5) = verificarNumero
+            diametro = Range(rango) / 1000
+            alturaCorona = alturaBase - diametro
+            matrizDatos(2, 5) = alturaCorona
         End If
         
-        flujo = Range("K44").Value
+        rango = "BN" & filaInicio
+        flujo = Range(rango).Value
         Select Case flujo
             Case "E"
                 matrizDatos(2, 9) = "Entra"
@@ -119,10 +146,13 @@ Sub deExcelAPocket()
                 matrizDatos(2, 9) = "Inicio"
         End Select
         
-        matrizDatos(2, 1) = 2: matrizDatos(2, 2) = Range("K48").Value: matrizDatos(2, 3) = "Sur"
-        matrizDatos(2, 6) = Range("M52").Value: matrizDatos(2, 7) = estadoContiguo: matrizDatos(2, 8) = funcionaContiguo
+        rango = "BO" & filaInicio
+        matrizDatos(2, 1) = 2: matrizDatos(2, 2) = Range(rango).Value: matrizDatos(2, 3) = "Sur"
+        rango = "BK" & filaInicio
+        matrizDatos(2, 6) = Range(rango).Value: matrizDatos(2, 7) = estadoContiguo: matrizDatos(2, 8) = funcionaContiguo
         
-        OpEstadoContiguo = Range("V43").Value
+        rango = "BT" & filaInicio
+        OpEstadoContiguo = Range(rango).Value
         Select Case OpEstadoContiguo
             Case "B"
                 estadoContiguo = "Bueno"
@@ -132,29 +162,37 @@ Sub deExcelAPocket()
                 estadoContiguo = "Malo"
         End Select
         
-        OpFuncionaContiguo = Range("V44").Value
+        rango = "BU" & filaInicio
+        OpFuncionaContiguo = Range(rango).Value
         Select Case OpFuncionaContiguo
-            Case "SI"
+            Case "Si"
                 funcionaContiguo = "Si"
-            Case "NO"
+            Case "No"
                 funcionaContiguo = "No"
         End Select
         
-        verificarNumero = Range("V40").Value
+        rango = "BQ" & filaInicio
+        verificarNumero = Range(rango).Value
         If verificarNumero = "" Then
             matrizDatos(3, 4) = 0
         Else
+            alturaBase = Range(rango).Value
             matrizDatos(3, 4) = verificarNumero
         End If
         
-        verificarNumero = Range("V41").Value
+        'Calcula la altura de la corona del pozo Este
+        rango = "BR" & filaInicio
+        verificarNumero = Range(rango).Value
         If verificarNumero = "" Then
             matrizDatos(3, 5) = 0
         Else
-            matrizDatos(3, 5) = verificarNumero
+            diametro = Range(rango) / 1000
+            alturaCorona = alturaBase - diametro
+            matrizDatos(3, 5) = alturaCorona
         End If
         
-        flujo = Range("L43").Value
+        rango = "BV" & filaInicio
+        flujo = Range(rango).Value
         Select Case flujo
             Case "E"
                 matrizDatos(3, 9) = "Entra"
@@ -164,10 +202,13 @@ Sub deExcelAPocket()
                 matrizDatos(3, 9) = "Inicio"
         End Select
         
-        matrizDatos(3, 1) = 3: matrizDatos(3, 2) = Range("N43").Value: matrizDatos(3, 3) = "Este"
-        matrizDatos(3, 6) = Range("V42").Value: matrizDatos(3, 7) = estadoContiguo: matrizDatos(3, 8) = funcionaContiguo
+        rango = "BW" & filaInicio
+        matrizDatos(3, 1) = 3: matrizDatos(3, 2) = Range(rango).Value: matrizDatos(3, 3) = "Este"
+        rango = "BS" & filaInicio
+        matrizDatos(3, 6) = Range(rango).Value: matrizDatos(3, 7) = estadoContiguo: matrizDatos(3, 8) = funcionaContiguo
         
-        OpEstadoContiguo = Range("E43").Value
+        rango = "BD" & filaInicio
+        OpEstadoContiguo = Range(rango).Value
         Select Case OpEstadoContiguo
             Case "B"
                 estadoContiguo = "Bueno"
@@ -177,29 +218,37 @@ Sub deExcelAPocket()
                 estadoContiguo = "Malo"
         End Select
         
-        OpFuncionaContiguo = Range("E44").Value
+        rango = "BE" & filaInicio
+        OpFuncionaContiguo = Range(rango).Value
         Select Case OpFuncionaContiguo
-            Case "SI"
+            Case "Si"
                 funcionaContiguo = "Si"
-            Case "NO"
+            Case "No"
                 funcionaContiguo = "No"
         End Select
         
-        verificarNumero = Range("E40").Value
+        rango = "BA" & filaInicio
+        verificarNumero = Range(rango).Value
         If verificarNumero = "" Then
             matrizDatos(4, 4) = 0
         Else
-            matrizDatos(4, 4) = verificarNumero
+            alturaBase = Range(rango).Value
+            matrizDatos(4, 4) = alturaBase
         End If
         
-        verificarNumero = Range("E41").Value
+        'Calcula la altura de la corona del pozo oeste
+        rango = "BB" & filaInicio
+        verificarNumero = Range(rango).Value  'Diámetro
         If verificarNumero = "" Then
             matrizDatos(4, 5) = 0
         Else
-            matrizDatos(4, 5) = verificarNumero
+            diametro = Range(rango) / 1000
+            alturaCorona = alturaBase - diametro
+            matrizDatos(4, 5) = alturaCorona
         End If
         
-        flujo = Range("J43").Value
+        rango = "BF" & filaInicio
+        flujo = Range(rango).Value
         Select Case flujo
             Case "E"
                 matrizDatos(4, 9) = "Entra"
@@ -209,12 +258,14 @@ Sub deExcelAPocket()
                 matrizDatos(4, 9) = "Inicio"
         End Select
         
-        matrizDatos(4, 1) = 4: matrizDatos(4, 2) = Range("G43").Value: matrizDatos(4, 3) = "Oeste"
-        matrizDatos(4, 6) = Range("E42").Value: matrizDatos(4, 7) = estadoContiguo: matrizDatos(4, 8) = funcionaContiguo
+        rango = "BG" & filaInicio
+        matrizDatos(4, 1) = 4: matrizDatos(4, 2) = Range(rango).Value: matrizDatos(4, 3) = "Oeste"
+        rango = "BC" & filaInicio
+        matrizDatos(4, 6) = Range(rango).Value: matrizDatos(4, 7) = estadoContiguo: matrizDatos(4, 8) = funcionaContiguo
         
         'sumideros
-        existeSum = Range("R15").Value
-        existeRejilla = Range("R20").Value
+        existeSum = ""  'Range("R15").Value
+        existeRejilla = ""  'Range("R20").Value
         existeSum = ""
         If existeSum = "X" Then
             existeSum = "Si"
@@ -228,9 +279,9 @@ Sub deExcelAPocket()
         End If
         
         tipoRejilla = ""
-        rejillaHf = Range("R22").Value
-        rejillaHs = Range("T22").Value
-        rejillaMet = Range("R24").Value
+        rejillaHf = "X"  'Range("R22").Value
+        rejillaHs = ""  'Range("T22").Value
+        rejillaMet = ""  'Range("R24").Value
         If rejillaHf = "X" Then
             tipoRejilla = "HF"
         End If
@@ -242,9 +293,9 @@ Sub deExcelAPocket()
         End If
         
         estadoSumidero = ""
-        sumB = Range("T27").Value
-        sumM = Range("T29").Value
-        sumR = Range("T28").Value
+        sumB = "X"  'Range("T27").Value
+        sumM = ""  'Range("T29").Value
+        sumR = ""  'Range("T28").Value
         If sumB = "X" Then
             estadoSumidero = "Bueno"
         End If
@@ -255,7 +306,7 @@ Sub deExcelAPocket()
             estadoSumidero = "Regular"
         End If
         
-        opcionFunciona = Range("R31").Value
+        opcionFunciona = "X"  'Range("R31").Value
         funciona = ""
         If opcionFunciona = "X" Then
             funciona = "Si"
@@ -263,14 +314,14 @@ Sub deExcelAPocket()
             funciona = "No"
         End If
         
-        verificarNumero = Range("S17").Value
+        verificarNumero = "0"  'Range("S17").Value
         If verificarNumero = "" Then
             matrizDatos(5, 3) = 0
         Else
             matrizDatos(5, 3) = verificarNumero
         End If
         
-        verificarNumero = Range("T25").Value
+        verificarNumero = "0"  'Range("T25").Value
         If verificarNumero = "" Then
             matrizDatos(5, 6) = 0
         Else
@@ -280,9 +331,9 @@ Sub deExcelAPocket()
         matrizDatos(5, 1) = 5: matrizDatos(5, 2) = existeSum: matrizDatos(5, 4) = existeRejilla: matrizDatos(5, 5) = tipoRejilla
         matrizDatos(5, 7) = estadoSumidero: matrizDatos(5, 8) = funciona
         
-        nivelSobre = Range("X35").Value
-        nivelado = Range("X37").Value
-        nivelEnterrado = Range("X39").Value
+        nivelSobre = ""  'Range("X35").Value
+        nivelado = "X"  'Range("X37").Value
+        nivelEnterrado = ""  'Range("X39").Value
         nivel = ""
         If nivelSobre = "X" Then
             nivel = "Sobresalido"
@@ -294,11 +345,12 @@ Sub deExcelAPocket()
             nivel = "Enterrado"
         End If
         
-        matrizDatos(6, 1) = 6: matrizDatos(6, 2) = Range("AA34").Value: matrizDatos(6, 2) = Range("AA34").Value: matrizDatos(6, 3) = nivel: matrizDatos(6, 4) = 0
+        rango = "CG" & filaInicio
+        matrizDatos(6, 1) = 6: matrizDatos(6, 2) = Range(rango).Value: matrizDatos(6, 3) = nivel: matrizDatos(6, 4) = 0
         
-        pozoB = Range("AI18").Value
-        pozoR = Range("AI19").Value
-        pozoM = Range("AI20").Value
+        pozoB = "X"  'Range("AI18").Value
+        pozoR = "" 'Range("AI19").Value
+        pozoM = ""  'Range("AI20").Value
         estadoPozo = ""
         If pozoB = "X" Then
             estadoPozo = "Bueno"
@@ -310,9 +362,9 @@ Sub deExcelAPocket()
             estadoPozo = "Regular"
         End If
         
-        sanitario = Range("AM18").Value
-        pluvial = Range("AM19").Value
-        comb = Range("AM20").Value
+        sanitario = ""  'Range("AM18").Value
+        pluvial = ""  'Range("AM19").Value
+        comb = "X"  'Range("AM20").Value
         fluido = ""
         If sanitario = "X" Then
             fluido = "Sanitario"
@@ -324,17 +376,17 @@ Sub deExcelAPocket()
             fluido = "Combinado"
         End If
         
-        verificarNumero = Range("AL9").Value
+        verificarNumero = "2019"  'Range("AL9").Value
         If verificarNumero = "" Then
             matrizDatos(7, 4) = 0
         Else
             matrizDatos(7, 4) = verificarNumero
         End If
         
-        matrizDatos(7, 1) = 7: matrizDatos(7, 2) = Range("AJ6").Value: matrizDatos(7, 3) = Range("AH9").Value: matrizDatos(7, 5) = estadoPozo: matrizDatos(7, 6) = fluido
+        matrizDatos(7, 1) = 7: matrizDatos(7, 2) = "Consultora": matrizDatos(7, 3) = "14/08/2019": matrizDatos(7, 5) = estadoPozo: matrizDatos(7, 6) = fluido
         
-        escNo = Range("AM33").Value
-        escSi = Range("AM32").Value
+        escNo = ""  'Range("AM33").Value
+        escSi = "X"  'Range("AM32").Value
         escalera = ""
         If escNo = "X" Then
             escalera = "No"
@@ -343,8 +395,8 @@ Sub deExcelAPocket()
             escalera = "Si"
         End If
         
-        escal = Range("AM34").Value
-        escalines = Range("AM35").Value
+        escal = "X"  'Range("AM34").Value
+        escalines = "" 'Range("AM35").Value
         tipoEsc = ""
         If escal = "X" Then
             tipoEsc = "Escalera"
@@ -353,9 +405,9 @@ Sub deExcelAPocket()
             tipoEsc = "Escalines"
         End If
         
-        interior = Range("AM27").Value
-        parcial = Range("AM29").Value
-        sinEnlucir = Range("AM28").Value
+        interior = "X"  'Range("AM27").Value
+        parcial = ""  'Range("AM29").Value
+        sinEnlucir = ""  'Range("AM28").Value
         enlucidos = ""
         If interior = "X" Then
             enlucidos = "Interior"
@@ -367,26 +419,26 @@ Sub deExcelAPocket()
             enlucidos = "Sin enlucir"
         End If
         
-        verificarNumero = Range("AM36").Value
+        verificarNumero = "1"  'Range("AM36").Value
         If verificarNumero = "" Then
             matrizDatos(8, 7) = 0
         Else
             matrizDatos(8, 7) = verificarNumero
         End If
         
-        verificarNumero = Range("AM37").Value
+        verificarNumero = "0.40"  'Range("AM37").Value
         If verificarNumero = "" Then
             matrizDatos(8, 8) = 0
         Else
             matrizDatos(8, 8) = verificarNumero
         End If
         
-        matrizDatos(8, 1) = 8: matrizDatos(8, 2) = Range("AI27").Value: matrizDatos(8, 3) = Range("AI28").Value: matrizDatos(8, 4) = Range("AI29").Value: matrizDatos(8, 5) = escalera
+        matrizDatos(8, 1) = 8: matrizDatos(8, 2) = "HS": matrizDatos(8, 3) = "HS": matrizDatos(8, 4) = "HS": matrizDatos(8, 5) = escalera
         matrizDatos(8, 6) = tipoEsc: matrizDatos(8, 9) = enlucidos
         
-        limpio = Range("AI32").Value
-        tierra = Range("AI33").Value
-        aguaEst = Range("AI34").Value
+        limpio = "X"  'Range("AI32").Value
+        tierra = ""  'Range("AI33").Value
+        aguaEst = ""  'Range("AI34").Value
         mantenimiento = ""
         If limpio = "X" Then
             mantenimiento = "Limpio"
@@ -398,10 +450,10 @@ Sub deExcelAPocket()
             mantenimiento = "Agua estancada"
         End If
         
-        tapaHf = Range("AI39").Value
-        tapaHs = Range("AI40").Value
-        tapaNo = Range("AI41").Value
-        tapaPiedra = Range("AM39").Value
+        tapaHf = "X"  'Range("AI39").Value
+        tapaHs = ""  'Range("AI40").Value
+        tapaNo = ""  'Range("AI41").Value
+        tapaPiedra = ""  'Range("AM39").Value
         tapa = ""
         If tapaHf = "X" Then
             tapa = "HF"
@@ -416,7 +468,7 @@ Sub deExcelAPocket()
             tapa = "No tiene"
         End If
         
-        opCadena = Range("AI43").Value
+        opCadena = "X"  'Range("AI43").Value
         cadena = ""
         If opCadena = "X" Then
             cadena = "Si"
@@ -424,7 +476,7 @@ Sub deExcelAPocket()
             cadena = "No"
         End If
         
-        opRota = Range("AI44").Value
+        opRota = ""  'Range("AI44").Value
         rota = ""
         If opRota = "X" Then
             rota = "Si"
@@ -434,49 +486,53 @@ Sub deExcelAPocket()
         
         matrizDatos(9, 1) = 9: matrizDatos(9, 2) = mantenimiento: matrizDatos(9, 3) = tapa: matrizDatos(9, 4) = cadena: matrizDatos(9, 5) = rota
         
-        verificarNumero = Range("AK46").Value
+        verificarNumero = "0.60"  'Range("AK46").Value
         If verificarNumero = "" Then
             matrizDatos(10, 2) = 0
         Else
             matrizDatos(10, 2) = verificarNumero
         End If
         
-        verificarNumero = Range("AK47").Value
+        rango = "AW" & filaInicio
+        verificarNumero = Range(rango).Value
         If verificarNumero = "" Then
             matrizDatos(10, 3) = 0
         Else
-            matrizDatos(10, 3) = verificarNumero
+            matrizDatos(10, 3) = Round(Range(rango).Value, 2)
         End If
         
-        verificarNumero = Range("AK48").Value
+        verificarNumero = "0.90"  'Range("AK48").Value
         If verificarNumero = "" Then
             matrizDatos(10, 4) = 0
         Else
             matrizDatos(10, 4) = verificarNumero
         End If
         
-        verificarNumero = Range("AM47").Value
+        verificarNumero = "0.60"  'Range("AM47").Value
         If verificarNumero = "" Then
             matrizDatos(10, 5) = 0
         Else
             matrizDatos(10, 5) = verificarNumero
         End If
         
-        matrizDatos(10, 1) = 10: matrizDatos(10, 6) = Range("AI52").Value + Range("AG53").Value
+        matrizDatos(10, 1) = 10: matrizDatos(10, 6) = "Tramo nuevo"
         
-        matrizDatos(11, 1) = 11: matrizDatos(11, 2) = Range("B46").Value: matrizDatos(11, 3) = Range("P29").Value
+        matrizDatos(11, 1) = 11: matrizDatos(11, 2) = "OE": matrizDatos(11, 3) = "NS"
         
-        verificarNumero = Range("AH5").Value
+        rango = "B" & filaInicio
+        verificarNumero = Range(rango).Value
         If verificarNumero = "" Then
             matrizDatos(12, 5) = 0
         Else
             matrizDatos(12, 5) = verificarNumero
         End If
         
-        matrizDatos(12, 1) = 12: matrizDatos(12, 2) = Range("V3").Value: matrizDatos(12, 3) = Range("S4").Value: matrizDatos(12, 4) = Range("AE4").Value: matrizDatos(12, 6) = "": matrizDatos(12, 7) = ""
+        rango = "F" & filaInicio  'Descarga
+        matrizDatos(12, 1) = 12: matrizDatos(12, 2) = "COM": matrizDatos(12, 3) = "SN": matrizDatos(12, 4) = Range(rango).Value: matrizDatos(12, 6) = "": matrizDatos(12, 7) = ""
         
         'coordenada Este
-        verificarNumero = Range("AI13").Value
+        rango = "R" & filaInicio
+        verificarNumero = Range(rango).Value
         If verificarNumero = "" Then
             matrizDatos(13, 3) = 0
         Else
@@ -485,7 +541,8 @@ Sub deExcelAPocket()
         End If
         
         'coordenada norte
-        verificarNumero = Range("AI14").Value
+        rango = "S" & filaInicio
+        verificarNumero = Range(rango).Value
         If verificarNumero = "" Then
             matrizDatos(13, 4) = 0
         Else
@@ -494,7 +551,8 @@ Sub deExcelAPocket()
         End If
         
         'cota
-        verificarNumero = Range("AL11").Value
+        rango = "T" & filaInicio
+        verificarNumero = Range(rango).Value
         If verificarNumero = "" Then
             matrizDatos(13, 5) = 0
         Else
@@ -503,14 +561,11 @@ Sub deExcelAPocket()
         End If
         
         matrizDatos(13, 1) = 13
-        If Range("AM10").Text = "Si" Then
-             matrizDatos(13, 2) = "True"
-        Else
-             matrizDatos(13, 2) = "False"
-        End If
+        matrizDatos(13, 2) = "False"
         
         'Creamos un archivo con el método CreateTextFile
-        nombrePozoCentral = Range("K43").Value
+        rango = "A" & filaInicio
+        nombrePozoCentral = Range(rango).Value
         Set archivoTexto = objetoFSO.CreateTextFile(rutaPozosTx & nombrePozoCentral & ".txt", True)
         For i = 1 To 13
             Select Case i
@@ -568,15 +623,23 @@ Sub deExcelAPocket()
             End Select
         Next i
         archivoTexto.Close
-        ActiveWorkbook.Save
-        ActiveWorkbook.Close
-        Windows(archivoMacro).Activate
+'        ActiveWorkbook.Save
+'        ActiveWorkbook.Close
+'        Windows(archivoMacro).Activate
         ActiveCell.Offset(1, 0).Select
+        filaInicio = filaInicio + 1
         archivo = ActiveCell.Value
-        If archivo <> "" Then
-            Workbooks.OpenText Filename:=rutaPozos + archivo
-            numCaracter = InStrRev(archivo, "\")
-            archivoExcelPozo = Mid(archivo, numCaracter + 1)
-        End If
+'        If archivo <> "" Then
+'            Workbooks.OpenText Filename:=rutaPozos + archivo
+'            numCaracter = InStrRev(archivo, "\")
+'            archivoExcelPozo = Mid(archivo, numCaracter + 1)
+'        End If
     Loop
 End Sub
+
+Function tipoTuberiaApp(ByVal material As String) As String
+    Dim tipoMaterialApp As String
+    Select Case material
+    
+    End Select
+End Function
